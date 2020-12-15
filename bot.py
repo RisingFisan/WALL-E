@@ -195,21 +195,4 @@ async def brrr(ctx):
     bot.reload_extension("extensions.interact")
     bot.reload_extension("extensions.manage")
 
-@bot.command(name='msg',hidden=True)
-@commands.is_owner()
-async def msg(ctx, user_id=423956774593363979, message=":floshed:"):
-    await bot.get_user(user_id).send(message)
-    dms : discord.DMChannel = bot.get_user(user_id).dm_channel
-    async for message in dms.history():
-        print(': '.join([message.author.name, message.content]))
-
-@bot.command(name='getdms',hidden=True)
-@commands.is_owner()
-async def getdms(ctx, user_id=423956774593363979):
-    await bot.get_user(user_id).create_dm()
-    dms = bot.get_user(user_id).dm_channel
-    messages = await dms.history().flatten()
-    for message in reversed(messages):
-        await ctx.send(content=': '.join([message.author.name, message.content]))
-
 main()

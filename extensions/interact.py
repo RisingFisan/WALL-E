@@ -196,7 +196,7 @@ class Interact(commands.Cog):
 
     @commands.command(name='floshed')
     async def floshed(self, ctx, url):
-        face_cascade = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
+        face_cascade = cv2.CascadeClassifier('db/haarcascade_frontalface_default.xml')
         user_agent = 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.9.0.7) Gecko/2009021910 Firefox/3.0.7'
         headers={'User-Agent':user_agent,} 
         try:

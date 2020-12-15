@@ -105,10 +105,6 @@ class Interact(commands.Cog):
                     else:
                         await ctx.send(content=f"{mention.mention} doesn't have COVID-19, and you can't cure their stupidity.")
 
-    #@commands.command(name='mask',brief='Put a mask on.')
-    #@commands.is_owner()
-    #async def mask(self, ctx):
-        
     @commands.command(name='water',brief='Drink water!')
     async def water(self, ctx):
         await ctx.send(content='Beep bop\nThis is your new favorite bot\nDrink water')

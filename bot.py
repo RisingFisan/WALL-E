@@ -66,8 +66,8 @@ async def on_message(message : discord.Message):
         for bad_word in bot.bad_words:
             if bad_word in ''.join(x for x in message.content.lower() if x not in string.whitespace + ".,-|\\/*_()") or\
             bad_word in message.content.lower():
-                pussy_alert = message.guild.id == 767651125880422430
-                if pussy_alert:
+                server_has_triggered_racists = message.guild.id in [767651125880422430]
+                if server_has_triggered_racists:
                     await message.channel.send(content=f"{message.author.mention}, please try not to use {bot.bad_words[bad_word]} terms, even if you don't mean \
 any harm those words can still be very hurtful to someone. There are other ways of expressing yourself without having to resort to hateful words. \
 If you find these messages annoying there's an easy way to fix it, you're the one triggering me, so just stop being {bot.bad_words[bad_word]}. 🙂 \

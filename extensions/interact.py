@@ -82,7 +82,7 @@ class Interact(commands.Cog):
             role = roles[0]
             # await role.delete()
             if len(mentions) == 0:
-                if ctx.author.id == 423956774593363979 or ctx.channel.permissions_for(ctx.author).administrator == True:
+                if ctx.author.id == self.bot.owner_id or ctx.channel.permissions_for(ctx.author).administrator == True:
                     for user in ctx.guild.members:
                         if role in user.roles:
                             await user.remove_roles(role)
@@ -95,7 +95,7 @@ class Interact(commands.Cog):
                         await ctx.send(content="Error - Invalid ID")
                         continue
                     if role in mention.roles:
-                        if mention.id != ctx.author.id or ctx.author.id == 423956774593363979:
+                        if mention.id != ctx.author.id or ctx.author.id == self.bot.owner_id:
                             await mention.remove_roles(role)
                             await ctx.send(content=f"It's a miracle! {mention.mention} has been cured!")
                         else:

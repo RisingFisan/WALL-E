@@ -115,6 +115,13 @@ async def on_message_edit(before, after):
     await on_message(after)
 
 @bot.event
+async def on_command_error(ctx, error):
+    if isinstance(error, commands.errors.CheckFailure):
+        await ctx.send(content="Nice try bruh")
+    else:
+        await bot.on_command_error(ctx,error)
+
+@bot.event
 async def on_member_remove(member):
     if not member.bot:
         channel = member.guild.system_channel

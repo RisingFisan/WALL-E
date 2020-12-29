@@ -64,17 +64,9 @@ async def on_message(message : discord.Message):
 
     if message.author.id != 1423956774593363979:
         for bad_word in bot.bad_words:
-            if bad_word in ''.join(x for x in message.content.lower() if x not in string.whitespace + ".,-|\\/*_()") or\
-            bad_word in message.content.lower():
-                server_has_triggered_racists = message.guild.id in [767651125880422430]
-                if server_has_triggered_racists:
-                    await message.channel.send(content=f"{message.author.mention}, please try not to use {bot.bad_words[bad_word]} terms, even if you don't mean \
-any harm those words can still be very hurtful to someone. There are other ways of expressing yourself without having to resort to hateful words. \
-If you find these messages annoying there's an easy way to fix it, you're the one triggering me, so just stop being {bot.bad_words[bad_word]}. 🙂 \
-Have a nice day!")
-                else:
-                    await message.channel.send(content="{} {}".format(message.author.mention, [emoji for emoji in bot.emojis if emoji.name == 'bruh'][0]))
-                    await message.delete()
+            if bad_word in ''.join(x for x in message.content.lower() if x not in string.whitespace + ".,-|\\/*_()") or bad_word in message.content.lower():
+                await message.channel.send(content="{} {}".format(message.author.mention, [emoji for emoji in bot.emojis if emoji.name == 'bruh'][0]))
+                await message.delete()
                 return
 
     if message.author.id in bot.cooldowned_users:

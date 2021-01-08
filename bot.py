@@ -65,7 +65,7 @@ async def on_message(message : discord.Message):
     if message.author.id != 1423956774593363979:
         for bad_word in bot.bad_words:
             if bad_word in ''.join(x for x in message.content.lower() if x not in string.whitespace + ".,-|\\/*_()") or bad_word in message.content.lower():
-                await message.channel.send(content="{} {}".format(message.author.mention, [emoji for emoji in bot.emojis if emoji.name == 'bruh'][0]))
+                await message.reply(content=discord.utils.find(lambda e: e.name.lower() == "bruh", bot.emojis) or "bruh")
                 await message.delete()
                 return
 
@@ -85,20 +85,20 @@ async def on_message(message : discord.Message):
     index = message.content.lower().find("o covid")
     if index != -1:
         if (len(message.content) == index + 7 or message.content[index+7] in "-1 ") and (index == 0 or message.content[index-1] in " ndl"):
-            await message.channel.send(content=f"Não é ***O*** COVID-19, é ***A*** COVID-19, stop misgendering global pandemics! {[emoji for emoji in bot.emojis if emoji.name == 'angry'][0]}")
+            await message.reply(content=f"Não é ***O*** COVID-19, é ***A*** COVID-19, stop misgendering global pandemics! {[emoji for emoji in bot.emojis if emoji.name == 'angry'][0]}", mention_author=False)
 
     index_es = message.content.lower().find("el covid")
     if index_es != -1:
         if len(message.content) == index_es + 8 or message.content[index_es+8] in "-1 \n":
-            await message.channel.send(content=f"No es ***EL*** COVID-19, es ***LA*** COVID-19, deja de tratar pandemias globais por el género errado! {[emoji for emoji in bot.emojis if emoji.name == 'angry'][0]}")
+            await message.reply(content=f"No es ***EL*** COVID-19, es ***LA*** COVID-19, deja de tratar pandemias globais por el género errado! {[emoji for emoji in bot.emojis if emoji.name == 'angry'][0]}", mention_author=False)
 
     index_fr = message.content.lower().find("le covid")
     if index_fr != -1:
         if len(message.content) == index_fr + 8 or message.content[index_fr+8] in "-1 \n":
-            await message.channel.send(content=f"Ce n'est pas ***LE*** COVID-19, c'est ***LA*** COVID-19, arrête de traiter pandémies mondiales par le mauvais genre! {[emoji for emoji in bot.emojis if emoji.name == 'angry'][0]}")
+            await message.reply(content=f"Ce n'est pas ***LE*** COVID-19, c'est ***LA*** COVID-19, arrête de traiter pandémies mondiales par le mauvais genre! {[emoji for emoji in bot.emojis if emoji.name == 'angry'][0]}", mention_author=False)
 
     if ("based " == message.content[:6].lower() or "based" in message.content[-10:].lower()) and "based on" not in message.content.lower():
-        await message.channel.send(content="Based? Based on what? In your dick? Please shut the fuck up and use words properly you fuckin troglodyte, do you think God gave us a freedom of speech just to spew random words that have no meaning that doesn't even correlate to the topic of the conversation? Like please you always complain about why no one talks to you or no one expresses their opinions on you because you're always spewing random shit like poggers based cringe and when you try to explain what it is and you just say that it's funny like what? What the fuck is funny about that do you think you'll just become a stand-up comedian that will get a standing ovation just because you said \"cum\" in the stage? HELL NO YOU FUCKIN IDIOT, so please shut the fuck up and use words properly you dumb bitch")
+        await message.reply(content="Based? Based on what? In your dick? Please shut the fuck up and use words properly you fuckin troglodyte, do you think God gave us a freedom of speech just to spew random words that have no meaning that doesn't even correlate to the topic of the conversation? Like please you always complain about why no one talks to you or no one expresses their opinions on you because you're always spewing random shit like poggers based cringe and when you try to explain what it is and you just say that it's funny like what? What the fuck is funny about that do you think you'll just become a stand-up comedian that will get a standing ovation just because you said \"cum\" in the stage? HELL NO YOU FUCKIN IDIOT, so please shut the fuck up and use words properly you dumb bitch", mention_author=False)
 
     await bot.process_commands(message)
 

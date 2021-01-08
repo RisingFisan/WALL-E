@@ -115,7 +115,7 @@ class Interact(commands.Cog):
     
     @commands.command(name='enfim',brief='Enfim...')
     async def enfim(self, ctx):
-        await ctx.send(content='a hipocrisia')
+        await ctx.message.reply(content='a hipocrisia',mention_author=False)
 
     @commands.command(name='spoiler',brief='Shh, it\'s a spoiler!',
                     usage='[string]')

@@ -1,5 +1,8 @@
 import discord
 from discord.ext import commands
+import urllib.request, json
+import datetime
+from asyncio import TimeoutError
 
 class Utils(commands.Cog):
     def __init__(self, bot):
@@ -48,6 +51,44 @@ class Utils(commands.Cog):
     @commands.command(name='time',brief='What time is it?')
     async def time(self, ctx):
         await ctx.send(content=subprocess.Popen("date",shell=True,stdout=subprocess.PIPE).communicate()[0].decode("utf-8"))
+
+    @commands.command(name="urban",brief="Searches for a word's meaning in Urban Dictionary.",
+                    aliases=['ud'])
+    async def urban(self, ctx):
+        word = ' '.join(ctx.message.content.split()[1:])
+        url = f"http://api.urbandictionary.com/v0/define?term={'+'.join(word.split())}"
+        response = urllib.request.urlopen(url)
+        data = json.loads(response.read())
+        definitions = data['list']
+        if len(definitions) == 0:
+            await ctx.send(content=f"No definitions for '{word}' found.")
+            return
+        n = len(definitions)
+        i = 0
+        msg = await ctx.send(content="Loading...")
+        while True:
+            embed = discord.Embed(title=definitions[i]["word"],description=f"{definitions[i]['definition']}",\
+                url=definitions[i]['permalink'],timestamp=datetime.datetime.strptime(definitions[i]["written_on"].split('.')[0],"%Y-%m-%dT%H:%M:%S"))
+            embed.set_author(name=definitions[i]["author"])
+            example = definitions[i]['example'] if definitions[i]['example'] else 'No example given.'
+            embed.add_field(name="Example:",value=example)\
+                .add_field(name="👍",value=definitions[i]["thumbs_up"])\
+                .add_field(name="👎",value=definitions[i]["thumbs_down"])
+            embed.set_footer(text=f"Page {i+1} of {n}.")
+            await msg.clear_reactions()
+            await msg.edit(content=None,embed=embed)
+            await msg.add_reaction("◀️")
+            await msg.add_reaction("▶️")
+            try:
+                reaction, user = await self.bot.wait_for("reaction_add", timeout=300.0, check=lambda react,auth: ctx.author == auth\
+                                                                                            and str(react.emoji) in ["◀️", "▶️"] and react.message.id == msg.id)
+                if str(reaction.emoji) == '▶️' and i < n - 1:
+                    i += 1
+                elif str(reaction.emoji) == '◀️' and i > 0:
+                    i -= 1
+            except TimeoutError:
+                break
+
 
 def setup(bot):
     bot.add_cog(Utils(bot))

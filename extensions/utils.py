@@ -1,8 +1,13 @@
 import discord
+from discord.errors import HTTPException
 from discord.ext import commands
-import urllib.request, json
+import urllib.request, urllib.error, urllib.parse, json
 import datetime
 from asyncio import TimeoutError
+
+from aiohttp import ClientSession
+import html2text
+import re
 
 class Utils(commands.Cog):
     def __init__(self, bot):
@@ -36,8 +41,11 @@ class Utils(commands.Cog):
     async def avatar(self, ctx : commands.Context , user : str = ""):
         member = None
         if user.isdigit():
-            member = await ctx.guild.fetch_member(user)
-        elif len(ctx.message.mentions) == 1:
+            try:
+                member = await ctx.guild.fetch_member(user)
+            except HTTPException:
+                member = await self.bot.fetch_user(user)
+        elif len(ctx.message.mentions) >= 1:
             member = ctx.message.mentions[0]
         elif not user:
             member = ctx.author
@@ -88,6 +96,106 @@ class Utils(commands.Cog):
                     i -= 1
             except TimeoutError:
                 break
+    
+    @commands.command(name="define", brief="Searches for a word's definition using Google's dictionary API.",
+                    aliases=['def','dict','what_is'],
+                    help="Use this command to learn the meaning(s) of a certain word. Supported languages are:\n{}".format('\n'.join(['en','hi','es','fr','ja','ru','de','it','ko','pt','ar','tr'])),
+                    usage="word language_abbreviation")
+    async def define(self, ctx, word, lang="en"):
+        if lang=='pt': lang = 'pt-BR'
+        url = f"https://api.dictionaryapi.dev/api/v2/entries/{lang}/{urllib.parse.quote('+'.join(word.split()))}"
+        try:
+            response = urllib.request.urlopen(url)
+        except (urllib.error.HTTPError):
+            await ctx.send(content=f"No definitions for '{word}' found.")
+            return
+        data = json.loads(response.read())
+        i = 0
+        n = len(data)
+        msg = await ctx.send(content="Loading...")
+        while True:
+            res = data[i]
+            embed = discord.Embed(title=res['word'],url=url)
+            embed.set_thumbnail(url="https://lh3.googleusercontent.com/R2e7I-0MQgxeJ-dkkGfDxL2PWPcR3DTGhttSloJO70ax2N0TEtcT-AlmLcMAJZyHOhhqRTTpuJjO9qVs24DUDIMYVsk=w128-h128-e365-rj-sc0x00ffffff")
+            if 'origin' in res and res['origin']: embed.add_field(name='Word origin:', value=res['origin'],inline=False)
+            for meaning in res['meanings']:
+                defs = '\n'.join(f"{i+1}) {x['definition']}" + (f"\n`\"{x['example']}\"`" if 'example' in x else '') for i,x in enumerate(meaning['definitions']))
+                if len(defs) >= 1024:
+                    defs = defs[:1020] + '\n...'
+                embed.add_field(name=meaning['partOfSpeech'],value=defs)
+            if res['phonetics']: embed.set_author(name=f"{', '.join(x['text'] if x else ' ' for x in res['phonetics'])}")
+            if n > 1:
+                embed.set_footer(text=f"Page {i+1} of {n}.")
+            else:
+                await msg.edit(content=None, embed=embed)
+                break
+            await msg.clear_reactions()
+            await msg.edit(content=None, embed=embed)
+            await msg.add_reaction("◀️")
+            await msg.add_reaction("▶️")
+            try:
+                reaction, user = await self.bot.wait_for("reaction_add", timeout=300.0, check=lambda react,auth: ctx.author == auth\
+                                                                                            and str(react.emoji) in ["◀️", "▶️"] and react.message.id == msg.id)
+                if str(reaction.emoji) == '▶️' and i < n - 1:
+                    i += 1
+                elif str(reaction.emoji) == '◀️' and i > 0:
+                    i -= 1
+            except TimeoutError:
+                break
+
+    @commands.command(name='hoogle',
+                      brief="search hoogle")
+    async def hoogle(self, ctx, * query : str):
+        """Searches Hoggle and returns first two options
+        Click title to see full search"""
+        parser = html2text.HTML2Text()
+        parser.mark_code = True
+        url = f"https://hoogle.haskell.org?mode=json&hoogle={'+'.join(query)}&start=1"
+        result, error = await get_json(url)
+        if error:
+            await ctx.send(error)
+            return
+        embed = discord.Embed(title=f"Definition of {' '.join(query)}", url=f"https://hoogle.haskell.org/?hoogle={'+'.join(query)}")
+        embed.set_thumbnail(url = "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c3/Lambda-letter-lowercase-symbol-Garamond.svg/1200px-Lambda-letter-lowercase-symbol-Garamond.svg.png")
+        if not result:
+            await ctx.send(content = f"No results for {' '.join(query)} found.")
+        else:
+            i = 0
+            n = len(result)
+            msg = await ctx.send(content="Loading...")
+            while True:
+                l = result[i]
+                val = "*Module:* " + l["module"]["name"] + "\n"
+                val += re.sub(r"\[\/?code\]",r"```",re.sub(r"\n(\w)", r" \1" , re.sub(r'\s{2,}', "\n", parser.handle(l["docs"]))))
+                embed.remove_field(0)
+                embed.add_field(name= parser.handle(l["item"]), value= val, inline=False)
+                if n > 1:
+                    embed.set_footer(text=f"Page {i+1} of {n}.")
+                else:
+                    await msg.edit(content=None, embed=embed)
+                    break
+                await msg.clear_reactions()
+                await msg.edit(content=None, embed=embed)
+                await msg.add_reaction("◀️")
+                await msg.add_reaction("▶️")
+                try:
+                    reaction, user = await self.bot.wait_for("reaction_add", timeout=300.0, check=lambda react,auth: ctx.author == auth\
+                                                                                                and str(react.emoji) in ["◀️", "▶️"] and react.message.id == msg.id)
+                    if str(reaction.emoji) == '▶️' and i < n - 1:
+                        i += 1
+                    elif str(reaction.emoji) == '◀️' and i > 0:
+                        i -= 1
+                except TimeoutError:
+                    break
+
+async def get_json(url):
+    try:
+        async with ClientSession() as session:
+            async with session.get(url) as response:
+                result = await response.json()
+        return result, None
+    except:
+        return None, "Something unexpected went wrong."
 
 
 def setup(bot):

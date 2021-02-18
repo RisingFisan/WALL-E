@@ -6,13 +6,13 @@ import discord
 from discord.ext import commands
 import string
 import time
+from unidecode import unidecode
+import re
+from itertools import takewhile
 
-if discord.version_info.minor >= 5:
-    intents = discord.Intents.default()
-    intents.members=True
-    bot = commands.Bot(command_prefix='?', case_insensitive=True, intents=intents)
-else:
-    bot = commands.Bot(command_prefix='?', case_insensitive=True)
+intents = discord.Intents.all()
+# intents.members=True
+bot = commands.Bot(command_prefix='?', case_insensitive=True, intents=intents)
 
 def main():
     bot.IMAGES_PATH = "./images/"
@@ -49,6 +49,8 @@ def main():
     except FileNotFoundError:
         print("Bad words file not found, feature won't be able to be used.")
 
+    bot.covidre = re.compile(r"(?:[\sdl]|^)[o0] c[o0][bv][il]de?(?:[\W\d]|$)")
+
     bot.run(open("./auth").readline().rstrip())
 
 @bot.event
@@ -62,9 +64,11 @@ async def on_message(message : discord.Message):
     if message.author == bot.user:
         return
 
+    decoded = unidecode(message.content.lower())
+
     if message.author.id != 1423956774593363979:
         for bad_word in bot.bad_words:
-            if bad_word in ''.join(x for x in message.content.lower() if x not in string.whitespace + ".,-|\\/*_()") or bad_word in message.content.lower():
+            if bad_word in unidecode(''.join(x for x in message.content.lower() if x not in string.whitespace + ":.,-|\\/*_()")) or bad_word in decoded:
                 await message.reply(content=discord.utils.find(lambda e: e.name.lower() == "bruh", bot.emojis) or "bruh")
                 await message.delete()
                 return
@@ -82,20 +86,24 @@ async def on_message(message : discord.Message):
         elif content in bot.gifsMap:
             await message.channel.send(file=discord.File(bot.gifsMap[content]))
             return
-    index = message.content.lower().find("o covid")
-    if index != -1:
-        if (len(message.content) == index + 7 or message.content[index+7] in "-1 ") and (index == 0 or message.content[index-1] in " ndl"):
-            await message.reply(content=f"Não é ***O*** COVID-19, é ***A*** COVID-19, stop misgendering global pandemics! {[emoji for emoji in bot.emojis if emoji.name == 'angry'][0]}", mention_author=False)
 
-    index_es = message.content.lower().find("el covid")
-    if index_es != -1:
-        if len(message.content) == index_es + 8 or message.content[index_es+8] in "-1 \n":
-            await message.reply(content=f"No es ***EL*** COVID-19, es ***LA*** COVID-19, deja de tratar pandemias globais por el género errado! {[emoji for emoji in bot.emojis if emoji.name == 'angry'][0]}", mention_author=False)
+    if re.search(bot.covidre,decoded) is not None:
+        await message.reply(content=f"Não é ***O*** COVID-19, é ***A*** COVID-19, stop misgendering global pandemics! {[emoji for emoji in bot.emojis if emoji.name == 'angry'][0]}", mention_author=False)
 
-    index_fr = message.content.lower().find("le covid")
-    if index_fr != -1:
-        if len(message.content) == index_fr + 8 or message.content[index_fr+8] in "-1 \n":
-            await message.reply(content=f"Ce n'est pas ***LE*** COVID-19, c'est ***LA*** COVID-19, arrête de traiter pandémies mondiales par le mauvais genre! {[emoji for emoji in bot.emojis if emoji.name == 'angry'][0]}", mention_author=False)
+    #if decoded.startswith("i'm"):
+    #    await message.reply(content=f"Hi {''.join(takewhile(lambda x : x and x not in '.,;', decoded[4:]))}, I'm WALL-E!", mention_author=False)
+    #elif decoded.startswith("i am"):
+    #    await message.reply(content=f"Hi {''.join(takewhile(lambda x : x and x not in '.,;', decoded[5:]))}, I'm WALL-E!", mention_author=False)
+
+    #index_es = message.content.lower().find("el covid")
+    #if index_es != -1:
+    #    if len(message.content) == index_es + 8 or message.content[index_es+8] in "-1 \n":
+    #        await message.reply(content=f"No es ***EL*** COVID-19, es ***LA*** COVID-19, deja de tratar pandemias globais por el género errado! {[emoji for emoji in bot.emojis if emoji.name == 'angry'][0]}", mention_author=False)
+
+    #index_fr = message.content.lower().find("le covid")
+    #if index_fr != -1:
+    #    if len(message.content) == index_fr + 8 or message.content[index_fr+8] in "-1 \n":
+    #        await message.reply(content=f"Ce n'est pas ***LE*** COVID-19, c'est ***LA*** COVID-19, arrête de traiter pandémies mondiales par le mauvais genre! {[emoji for emoji in bot.emojis if emoji.name == 'angry'][0]}", mention_author=False)
 
     if ("based " == message.content[:6].lower() or "based" in message.content[-10:].lower()) and "based on" not in message.content.lower():
         await message.reply(content="Based? Based on what? In your dick? Please shut the fuck up and use words properly you fuckin troglodyte, do you think God gave us a freedom of speech just to spew random words that have no meaning that doesn't even correlate to the topic of the conversation? Like please you always complain about why no one talks to you or no one expresses their opinions on you because you're always spewing random shit like poggers based cringe and when you try to explain what it is and you just say that it's funny like what? What the fuck is funny about that do you think you'll just become a stand-up comedian that will get a standing ovation just because you said \"cum\" in the stage? HELL NO YOU FUCKIN IDIOT, so please shut the fuck up and use words properly you dumb bitch", mention_author=False)
@@ -111,7 +119,8 @@ async def on_command_error(ctx, error):
     if isinstance(error, commands.errors.CheckFailure):
         await ctx.send(content="Nice try bruh")
     else:
-        await bot.on_command_error(ctx,error)
+        raise error
+        # await bot.get_channel(id=787067233016217620).send(content=error)
 
 @bot.event
 async def on_member_remove(member):
@@ -121,8 +130,8 @@ async def on_member_remove(member):
         embed.set_thumbnail(url=member.avatar_url)
         await channel.send(embed=embed)
 
-@bot.command(name='cooldown',hidden=True)
-@commands.is_owner()
+@bot.command(name='cooldown',hidden=True,usage="userID time(s/m/h)")
+@commands.check_any(commands.is_owner(), commands.has_permissions(administrator=True))
 async def cooldown(ctx, user, time_in):
     time_converter = {'s':1,'m':60,'h':3600}
     if time_in[-1] in time_converter:
@@ -140,8 +149,8 @@ async def cooldown(ctx, user, time_in):
     bot.cooldowned_users[user.id] = time.time() + time_s
     await ctx.send(content=f"{user.mention} has been put on a {time_s}s cooldown.")
 
-@bot.command(name='remove_cooldown',hidden=True,aliases=['rc'])
-@commands.is_owner()
+@bot.command(name='remove_cooldown',hidden=True,aliases=['rc'],usage="userID")
+@commands.check_any(commands.is_owner(), commands.has_permissions(administrator=True))
 async def remove_cooldown(ctx, user):
     user = await ctx.guild.fetch_member(''.join(x for x in user if x.isdigit()))
     if user.id in bot.cooldowned_users:
@@ -193,5 +202,6 @@ async def brrr(ctx):
     bot.reload_extension("extensions.quotes")
     bot.reload_extension("extensions.interact")
     bot.reload_extension("extensions.manage")
+    bot.reload_extension("extensions.utils")
 
 main()

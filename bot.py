@@ -69,7 +69,7 @@ async def on_message(message : discord.Message):
     if message.author.id != 1423956774593363979:
         for bad_word in bot.bad_words:
             if bad_word in unidecode(''.join(x for x in message.content.lower() if x not in string.whitespace + ":.,-|\\/*_()")) or bad_word in decoded:
-                await message.reply(content=discord.utils.find(lambda e: e.name.lower() == "bruh", bot.emojis) or "bruh")
+                await message.channel.send(content=f'{message.author.mention} {discord.utils.find(lambda e: e.name.lower() == "bruh", bot.emojis) or "bruh"} sit yo\' {bot.bad_words[bad_word]} ass down')
                 await message.delete()
                 return
 

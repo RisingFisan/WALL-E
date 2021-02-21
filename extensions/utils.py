@@ -4,6 +4,7 @@ from discord.ext import commands
 import urllib.request, urllib.error, urllib.parse, json
 import datetime
 from asyncio import TimeoutError
+import subprocess
 
 from aiohttp import ClientSession
 import html2text
@@ -101,6 +102,7 @@ class Utils(commands.Cog):
                     aliases=['def','dict','what_is'],
                     help="Use this command to learn the meaning(s) of a certain word. Supported languages are:\n{}".format('\n'.join(['en','hi','es','fr','ja','ru','de','it','ko','pt','ar','tr'])),
                     usage="word language_abbreviation")
+    @commands.is_owner()
     async def define(self, ctx, word, lang="en"):
         if lang=='pt': lang = 'pt-BR'
         url = f"https://api.dictionaryapi.dev/api/v2/entries/{lang}/{urllib.parse.quote('+'.join(word.split()))}"

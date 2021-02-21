@@ -1,6 +1,5 @@
 import discord
 from discord.ext import commands
-import subprocess
 from datetime import datetime
 import cv2
 from urllib.request import urlopen, Request
@@ -46,18 +45,117 @@ class Interact(commands.Cog):
                     help='Use this command to give someone your love! <3',
                     usage='[user1|role1[, user2|role2[, ...]]]')
     async def love(self, ctx):
-        mentions = set(ctx.message.mentions).union(set(ctx.message.role_mentions))
-        if(len(mentions) > 0):
-            if ctx.author in mentions:
-                await ctx.send(content=f"Love yourself in private, {ctx.author.mention}... ಠ_ಠ")
-            else:
-                for mention in mentions:
-                    if self.bot.user.id == mention.id:
-                        await ctx.send(content=f"I love you too, {ctx.author.mention} (. ❛ ᴗ ❛.)/❤")
-                    else:
-                        await ctx.send(content=f"Hey {mention.mention}, {ctx.author.mention} loves you! (. ❛ ᴗ ❛.)/❤")
-        else:
-            await ctx.send(content=f"{ctx.author.mention} is feeling love!")
+        actions = {
+            'self': "Love yourself in private, {}... ಠ_ಠ",
+            'bot': "I love you too, {} ( ＾◡＾)っ ♡",
+            'default': "Hey {1}, {0} loves you! ( ＾◡＾)っ ♡",
+            'none': "{} is feeling love!"
+        }
+        await interaction(ctx, self.bot, actions)
+    
+    @commands.command(name='hug',
+                    brief='Hug someone!',
+                    help='Use this command to give someone a hug! 🤗',
+                    usage='[user1|role1[, user2|role2[, ...]]]')
+    async def hug(self, ctx):
+        actions = {
+            'self': "You can't hug yourself, {}, so I'll hug you instead! (づ ◕‿◕ )づ",
+            'bot': "Aww, thanks {}! 🥰",
+            'default': "{1} just got a BIG hug from {0}! (づ ◕‿◕ )づ",
+            'none': "\*{} hugs the air\*"
+        }
+        await interaction(ctx, self.bot, actions)
+
+    @commands.command(name='hide',
+                    brief='Hide from someone!',
+                    help='Use this command to hide from someone else!',
+                    usage='[user1|role1[, user2|role2[, ...]]]')
+    async def hide(self, ctx):
+        actions = {
+            'self': "I know it's scary, but you have to face your inner demons, {} 😔",
+            'bot': "I'll find you eventually {}... 😈",
+            'default': "{0} is trying to hide from {1} ┬┴┬┴┤(･_├┬┴┬┴",
+            'none': "{} hides from nothing, like an idiot."
+        }
+        await interaction(ctx, self.bot, actions)
+
+    @commands.command(name='fuck',
+                    brief='Fuck someone! (make sure you get their consent first)',
+                    help='Use this command to have sex with someone else, but only after they consent, of course 😌!',
+                    usage='[user1|role1[, user2|role2[, ...]]]')
+    async def fuck(self, ctx, *s):
+        actions = {
+            'self': "Ok, masturbator {}... 😳",
+            'bot': "I'm flattered, {}, but I'm already in a relationship!",
+            'default': "Hey {1}, {0} wants to **FUCK**! ( ͡° ͜ʖ ͡°)",
+            'none': "{} yells \"***FUCK " + ' '.join(s).upper() + "***\" out loud!"
+        }
+        await interaction(ctx, self.bot, actions)
+
+    @commands.command(name='slap',
+                    brief='Slap someone!',
+                    help='Use this command to slap someone else!',
+                    usage='[user1|role1[, user2|role2[, ...]]]')
+    async def slap(self, ctx):
+        actions = {
+            'self': "Please stop slapping yourself, {}, it's making everyone else unconfortable...",
+            'bot': "You know I'm made of metal, right {}? You hurt yourself more than you hurt me.",
+            'default': "{1} got the absolute shit slapped out of them by {0}! ( ‘д‘ ⊂ 彡☆))Д´)",
+            'none': "\*SLAP\* TOP O' THE MORNIN TO YA LADDIES!"
+        }
+        await interaction(ctx, self.bot, actions)
+
+    @commands.command(name='snipe',
+                brief='Snipe someone!',
+                help='Use this command to kill your enemies!',
+                usage='[user1|role1[, user2|role2[, ...]]]')
+    async def snipe(self, ctx):
+        actions = {
+            'self': "Nooooooooooo, don't kill yourself {} you're so sexy " + str(discord.utils.find(lambda e: e.name.lower() == "sexy", self.bot.emojis)) or '🥺',
+            'bot': "Nice try, bitch {}, but you'll have to do better than that! 😎",
+            'default': "{1} got sniped by {0}! ξ(✿ ❛‿❛)ξ▄︻┻┳═一",
+            'none': "Stop wasting bullets, {}."
+        }
+        await interaction(ctx, self.bot, actions)
+
+    @commands.command(name='dab',
+                brief='Dab on them haters!',
+                help='Use this command to dab on someone!',
+                usage='[user1|role1[, user2|role2[, ...]]]')
+    async def dab(self, ctx):
+        actions = {
+            'self': "You're dabbing on yourself, {}?! Bruh that's kinda cringe ngl",
+            'bot': "Nice dab, {}! \*dabs back\* ㄥ(⸝ ، ⸍ )‾‾‾‾‾",
+            'default': "Hey {1}, you just got dabbed on by {0}! ㄥ(⸝ ، ⸍ )‾‾‾‾‾",
+            'none': "ㄥ(⸝ ، ⸍ )‾‾‾‾‾"
+        }
+        await interaction(ctx, self.bot, actions)
+
+    @commands.command(name='cry',
+                brief='Someone made you cry?',
+                help='Use this command when someone makes you cry, or if you just feel like crying!',
+                usage='[user1|role1[, user2|role2[, ...]]]')
+    async def cry(self, ctx):
+        actions = {
+            'self': "Don't beat yourself up {}, you're perfect just the way you are! ( ＾◡＾)っ ♡",
+            'bot': "I'm so sorry {}... 😢",
+            'default': "{1} just made {0} cry! .·´¯\`(>▂<)´¯\`·.",
+            'none': ".·´¯\`(>▂<)´¯\`·."
+        }
+        await interaction(ctx, self.bot, actions)
+
+    @commands.command(name='interactions')
+    async def interactions(self, ctx):
+        await ctx.send(content="""Here's all the interactions you can perform:
+- love
+- cough
+- hug
+- hide
+- fuck
+- slap
+- snipe
+- dab
+- cry""")
 
     @commands.command(name='cough',
                     brief='Give someone COVID-19.',
@@ -300,6 +398,20 @@ def uwuify(message : str):
         else:
             uwuified += char
     return uwuified + " UwU"
+
+async def interaction(ctx, bot, actions):
+    mentions = set(ctx.message.mentions).union(set(ctx.message.role_mentions))
+    if(len(mentions) > 0):
+        if ctx.author in mentions:
+            await ctx.send(content=actions["self"].format(ctx.author.mention))
+        else:
+            for mention in mentions:
+                if bot.user.id == mention.id:
+                    await ctx.send(content=actions["bot"].format(ctx.author.mention))
+                else:
+                    await ctx.send(content=actions["default"].format(ctx.author.mention,mention.mention))
+    else:
+        await ctx.send(content=actions["none"].format(ctx.author.mention))
 
 def setup(bot):
     bot.add_cog(Interact(bot))

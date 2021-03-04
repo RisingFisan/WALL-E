@@ -34,7 +34,7 @@ def main():
             try:
                 bot.load_extension(f"extensions.{extension[:-3]}")
             except Exception as e:
-                print(e)
+                print(f"Error - Couldn't load extension {extension}\n{e}")
                 continue
 
     bot.cooldowned_users = dict()
@@ -66,12 +66,11 @@ async def on_message(message : discord.Message):
 
     decoded = unidecode(message.content.lower())
 
-    if message.author.id != 1423956774593363979:
-        for bad_word in bot.bad_words:
-            if bad_word in unidecode(''.join(x for x in message.content.lower() if x not in string.whitespace + ":.,-|\\/*_()")) or bad_word in decoded:
-                await message.channel.send(content=f'{message.author.mention} {discord.utils.find(lambda e: e.name.lower() == "bruh", bot.emojis) or "bruh"} sit yo\' {bot.bad_words[bad_word]} ass down')
-                await message.delete()
-                return
+    for bad_word in bot.bad_words:
+        if (bad_word in unidecode(''.join(x for x in message.content.lower() if x not in string.whitespace + ":.,-|\\/*_()")) or bad_word in decoded):
+            await message.channel.send(content=f'{message.author.mention} {discord.utils.find(lambda e: e.name.lower() == "bruh", bot.emojis) or "bruh"} sit yo\' {bot.bad_words[bad_word]} ass down')
+            await message.delete()
+            return
 
     if message.author.id in bot.cooldowned_users:
         if bot.cooldowned_users[message.author.id] < time.time():
@@ -105,7 +104,7 @@ async def on_message(message : discord.Message):
     #    if len(message.content) == index_fr + 8 or message.content[index_fr+8] in "-1 \n":
     #        await message.reply(content=f"Ce n'est pas ***LE*** COVID-19, c'est ***LA*** COVID-19, arrête de traiter pandémies mondiales par le mauvais genre! {[emoji for emoji in bot.emojis if emoji.name == 'angry'][0]}", mention_author=False)
 
-    if ("based " == message.content[:6].lower() or "based" in message.content[-10:].lower()) and "based on" not in message.content.lower():
+    if ("based " == message.content[:6].lower() or "based" in message.content[-8:].lower()) and message.content[6:8].lower() not in ("on","in"):
         await message.reply(content="Based? Based on what? In your dick? Please shut the fuck up and use words properly you fuckin troglodyte, do you think God gave us a freedom of speech just to spew random words that have no meaning that doesn't even correlate to the topic of the conversation? Like please you always complain about why no one talks to you or no one expresses their opinions on you because you're always spewing random shit like poggers based cringe and when you try to explain what it is and you just say that it's funny like what? What the fuck is funny about that do you think you'll just become a stand-up comedian that will get a standing ovation just because you said \"cum\" in the stage? HELL NO YOU FUCKIN IDIOT, so please shut the fuck up and use words properly you dumb bitch", mention_author=False)
 
     await bot.process_commands(message)
@@ -186,12 +185,12 @@ async def popbadword(ctx):
 async def kil(ctx):
     await bot.logout()
 
-@bot.command(name='disable_quotes')
+@bot.command(name='disable_quotes',hidden=True)
 @commands.is_owner()
 async def disable_quotes(ctx):
     await bot.unload_extension("extensions.quotes")
 
-@bot.command(name='enable_quotes')
+@bot.command(name='enable_quotes',hidden=True)
 @commands.is_owner()
 async def enable_quotes(ctx):
     await bot.load_extension("extensions.quotes")
@@ -199,9 +198,8 @@ async def enable_quotes(ctx):
 @bot.command(name='brrr',hidden=True)
 @commands.is_owner()
 async def brrr(ctx):
-    bot.reload_extension("extensions.quotes")
-    bot.reload_extension("extensions.interact")
-    bot.reload_extension("extensions.manage")
-    bot.reload_extension("extensions.utils")
+    for extension in os.listdir("extensions"):
+        if extension[-3:] == '.py':
+            bot.reload_extension(f"extensions.{extension[:-3]}")
 
 main()

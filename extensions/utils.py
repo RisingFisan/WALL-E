@@ -10,6 +10,8 @@ from aiohttp import ClientSession
 import html2text
 import re
 
+from numpy.core.arrayprint import DatetimeFormat
+
 class Utils(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -29,7 +31,7 @@ class Utils(commands.Cog):
             .add_field(name="Bots",value=f"{n_bots}")\
             .add_field(name="Text channels", value=f"{len(guild.text_channels)}")\
             .add_field(name="Voice channels", value=f"{len(guild.voice_channels)}")\
-            .add_field(name="Emojis",value=f"{len(guild.emojis)}/{guild.emoji_limit}",inline=False)\
+            .add_field(name="Emojis",value=f"{len([x for x in guild.emojis if not x.animated])}/{guild.emoji_limit}",inline=False)\
             .add_field(name="Region",value=f"{str(guild.region).capitalize()}")\
             .add_field(name="Roles",value=f"{len(guild.roles) - 1}")\
             .add_field(name="Created at",value=f"{creation_date.year}-{str(creation_date.month).rjust(2,'0')}-{creation_date.day}")
@@ -102,18 +104,18 @@ class Utils(commands.Cog):
                     aliases=['def','dict','what_is'],
                     help="Use this command to learn the meaning(s) of a certain word. Supported languages are:\n{}".format('\n'.join(['en','hi','es','fr','ja','ru','de','it','ko','pt','ar','tr'])),
                     usage="word language_abbreviation")
-    @commands.is_owner()
     async def define(self, ctx, word, lang="en"):
         if lang=='pt': lang = 'pt-BR'
         url = f"https://api.dictionaryapi.dev/api/v2/entries/{lang}/{urllib.parse.quote('+'.join(word.split()))}"
-        try:
-            response = urllib.request.urlopen(url)
-        except (urllib.error.HTTPError):
-            await ctx.send(content=f"No definitions for '{word}' found.")
+        data, error = await get_json(url)
+        if error:
+            await ctx.send(error)
             return
-        data = json.loads(response.read())
         i = 0
         n = len(data)
+        if not isinstance(data, list):
+            await ctx.send(content=f"Error - no definitions found for '{word}'")
+            return
         msg = await ctx.send(content="Loading...")
         while True:
             res = data[i]
@@ -189,6 +191,20 @@ class Utils(commands.Cog):
                         i -= 1
                 except TimeoutError:
                     break
+        
+    @commands.command(name='poll',
+        brief="ask a question")
+    async def poll(self, ctx, question, *options):
+        embed = discord.Embed(title=question)
+        embed.set_footer(text=f"by {ctx.author.display_name}")
+        emojis = ['🇦', '🇧', '🇨', '🇩', '🇪', '🇫', '🇬', '🇭', '🇮', '🇯', '🇰', '🇱', '🇲', '🇳', '🇴', '🇵', '🇶', '🇷', '🇸', '🇹', '🇺', '🇻', '🇼', '🇽', '🇾', '🇿']
+        for i,option in enumerate(options):
+            embed.add_field(name=f"{emojis[i]} {option}",value="\u200b",inline=False)
+        await ctx.message.delete()
+        message = await ctx.send(embed=embed)
+        for i in range(len(options)):
+            await message.add_reaction(emojis[i])
+
 
 async def get_json(url):
     try:

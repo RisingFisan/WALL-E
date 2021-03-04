@@ -40,7 +40,7 @@ class Interact(commands.Cog):
     async def ping(self, ctx):
         await ctx.send(content=f"pong {[emoji for emoji in self.bot.emojis if emoji.name == 'floshed'][0]}")
 
-    @commands.command(name='love',
+    @commands.command(name='love',hidden=True,
                     brief='Show your love!',
                     help='Use this command to give someone your love! <3',
                     usage='[user1|role1[, user2|role2[, ...]]]')
@@ -53,7 +53,7 @@ class Interact(commands.Cog):
         }
         await interaction(ctx, self.bot, actions)
     
-    @commands.command(name='hug',
+    @commands.command(name='hug',hidden=True,
                     brief='Hug someone!',
                     help='Use this command to give someone a hug! 🤗',
                     usage='[user1|role1[, user2|role2[, ...]]]')
@@ -66,7 +66,7 @@ class Interact(commands.Cog):
         }
         await interaction(ctx, self.bot, actions)
 
-    @commands.command(name='hide',
+    @commands.command(name='hide',hidden=True,
                     brief='Hide from someone!',
                     help='Use this command to hide from someone else!',
                     usage='[user1|role1[, user2|role2[, ...]]]')
@@ -79,7 +79,7 @@ class Interact(commands.Cog):
         }
         await interaction(ctx, self.bot, actions)
 
-    @commands.command(name='fuck',
+    @commands.command(name='fuck',hidden=True,
                     brief='Fuck someone! (make sure you get their consent first)',
                     help='Use this command to have sex with someone else, but only after they consent, of course 😌!',
                     usage='[user1|role1[, user2|role2[, ...]]]')
@@ -92,7 +92,7 @@ class Interact(commands.Cog):
         }
         await interaction(ctx, self.bot, actions)
 
-    @commands.command(name='slap',
+    @commands.command(name='slap',hidden=True,
                     brief='Slap someone!',
                     help='Use this command to slap someone else!',
                     usage='[user1|role1[, user2|role2[, ...]]]')
@@ -105,7 +105,7 @@ class Interact(commands.Cog):
         }
         await interaction(ctx, self.bot, actions)
 
-    @commands.command(name='snipe',
+    @commands.command(name='snipe',hidden=True,
                 brief='Snipe someone!',
                 help='Use this command to kill your enemies!',
                 usage='[user1|role1[, user2|role2[, ...]]]')
@@ -118,7 +118,7 @@ class Interact(commands.Cog):
         }
         await interaction(ctx, self.bot, actions)
 
-    @commands.command(name='dab',
+    @commands.command(name='dab',hidden=True,
                 brief='Dab on them haters!',
                 help='Use this command to dab on someone!',
                 usage='[user1|role1[, user2|role2[, ...]]]')
@@ -131,7 +131,7 @@ class Interact(commands.Cog):
         }
         await interaction(ctx, self.bot, actions)
 
-    @commands.command(name='cry',
+    @commands.command(name='cry',hidden=True,
                 brief='Someone made you cry?',
                 help='Use this command when someone makes you cry, or if you just feel like crying!',
                 usage='[user1|role1[, user2|role2[, ...]]]')
@@ -144,18 +144,41 @@ class Interact(commands.Cog):
         }
         await interaction(ctx, self.bot, actions)
 
-    @commands.command(name='interactions')
+    @commands.command(name='spank',hidden=True,
+                brief='Spank someone 😳',
+                help='Use this command to punish someone who\'s been very naughty!',
+                usage='[user1|role1[, user2|role2[, ...]]]')
+    async def spank(self, ctx):
+        actions = {
+            'self': "You should get someone else to spank you {}, this is kinda sad...",
+            'bot': "Harder {} UwU " + str(discord.utils.find(lambda e: e.name.lower() == "ahegao", self.bot.emojis)) or '🥵',
+            'default': "{1} got spanked by {0}! (=ﾟ ωﾟ)つ (‿ˠ‿)",
+            'none': "You have to spank someone!"
+        }
+        await interaction(ctx, self.bot, actions)
+
+    @commands.command(name='whip',hidden=True,
+                brief='Whip someone 😉',
+                help='Use this command if you wanna be *very* kinky!',
+                usage='[user1|role1[, user2|role2[, ...]]]')
+    async def whip(self, ctx):
+        actions = {
+            'self': "If you wanna hurt yourself there are easier ways to do it {}...",
+            'bot': "Harder {} UwU " + str(discord.utils.find(lambda e: e.name.lower() == "ahegao", self.bot.emojis)) or '🥵',
+            'default': "{1} was whipped by {0}! (˵ ͡~ ͜ʖ ͡°˵)ﾉ⌒",
+            'none': "{} whips the air."
+        }
+        await interaction(ctx, self.bot, actions)
+
+    @commands.command(name='interactions', brief='Interact with someone else.')
     async def interactions(self, ctx):
-        await ctx.send(content="""Here's all the interactions you can perform:
-- love
-- cough
-- hug
-- hide
-- fuck
-- slap
-- snipe
-- dab
-- cry""")
+        embed = discord.Embed(title="Interactions", description="Here's all the interactions you can perform:")
+        embed.add_field(name="Friendly", value="love\nhug")
+        embed.add_field(name="Sexual", value="fuck\nspank")
+        embed.add_field(name="Neutral", value="hide\ndab")
+        embed.add_field(name="Negative", value="cry")
+        embed.add_field(name="Aggressive", value="cough\nslap\nsnipe")
+        await ctx.send(embed=embed)
 
     @commands.command(name='cough',
                     brief='Give someone COVID-19.',
@@ -225,6 +248,22 @@ class Interact(commands.Cog):
                         await ctx.send(content=f"Don't worry {mention.mention}, you're not sick... yet.")
                     else:
                         await ctx.send(content=f"{mention.mention} doesn't have COVID-19, and you can't cure their stupidity.")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     @commands.command(name='water',brief='Drink water!')
     async def water(self, ctx):
@@ -325,10 +364,34 @@ class Interact(commands.Cog):
         await ctx.send(content=sentence)
 
     @commands.command(name='overlay')
-    async def overlay(self, ctx, overlayimg="floshed", url=None):
+    async def overlay(self, ctx, overlayimg=None, url=None):
         face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
         user_agent = 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.9.0.7) Gecko/2009021910 Firefox/3.0.7'
-        headers={'User-Agent':user_agent,} 
+        headers={'User-Agent':user_agent,}
+        if not overlayimg:
+            overlay_img = cv2.imread(f"images/floshed.png",cv2.IMREAD_UNCHANGED)
+        elif ":" in overlayimg:
+            _, emoji_name, emoji_id = overlayimg.strip("<>").split(":",2)
+            emoji_obj = self.bot.get_emoji(int(emoji_id))
+            if emoji_obj:
+                try:
+                    emj = await emoji_obj.url.read()
+                    overlay_img = cv2.imdecode(np.fromstring(emj, np.uint8), cv2.IMREAD_UNCHANGED)
+                except Exception as e:
+                    await ctx.send(content=e)
+                    return
+            else:
+                await ctx.send(content=f"Error - emoji {emoji_name} is not in any of my servers, so I can't use it :(")
+                return
+        elif overlayimg.isalpha():
+            try:
+                overlay_img = cv2.imread(f"images/{overlayimg}.png",cv2.IMREAD_UNCHANGED)
+            except FileNotFoundError:
+                await ctx.send(content=f"Error - image {overlayimg} not found")
+                return
+        else:
+            await ctx.send(content=f"Sorry, I don't support default emojis... yet")
+            return
         if url is None:
             attch = ctx.message.attachments
             if len(attch) > 0:
@@ -354,19 +417,18 @@ class Interact(commands.Cog):
                 img = cv2.merge((b_channel, g_channel, r_channel, alpha_channel))
             gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
             faces = face_cascade.detectMultiScale(gray,scaleFactor=1.1,minNeighbors=5,minSize=(30,30),flags=cv2.CASCADE_SCALE_IMAGE)
-            floshed_img = cv2.imread(f"images/{overlayimg}.png",cv2.IMREAD_UNCHANGED)
             for (x, y, w, h) in faces:
-                resized = cv2.resize(floshed_img, (w,h))
-                alpha_floshed = resized[:,:,3] / 255.0
-                alpha_img = 1.0 - alpha_floshed
+                resized = cv2.resize(overlay_img, (w,h))
+                alpha_overlay = resized[:,:,3] / 255.0
+                alpha_img = 1.0 - alpha_overlay
                 for c in range(0,4):
-                    img[y:y+h, x:x+w, c] = (alpha_floshed * resized[:,:,c] +
+                    img[y:y+h, x:x+w, c] = (alpha_overlay * resized[:,:,c] +
                                             alpha_img * img[y:y+h, x:x+w, c])
             success, buffered = cv2.imencode(".png", img)
+            await ctx.send(file=discord.File(BytesIO(buffered),filename="image.png"))
         except Exception as e:
             await ctx.send(content=e)
             return
-        await ctx.send(file=discord.File(BytesIO(buffered),filename="image.png"))
 
     @commands.command(name='magicball',
                     brief='Ask the magic 8-ball a question.',
@@ -374,6 +436,17 @@ class Interact(commands.Cog):
                     usage='question')
     async def magicball(self, ctx):
         await ctx.message.reply(content=random.choice(self.answers),mention_author=False)
+
+    
+    @commands.command(name='DMs',hidden=True)
+    async def dms(self, ctx):
+        await ctx.send(content="idk man im not that creative with this lack of sleep joy")
+    
+    @commands.command(name='mike',hidden=True)
+    async def mike(self, ctx):
+        await ctx.message.delete()
+        await ctx.send(content="thx ❤ - mikinho")
+
 
 async def send_without_mentions(ctx : commands.Context, message : str):
     if "<@" in message:

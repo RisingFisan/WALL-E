@@ -11,7 +11,9 @@ class Manage(commands.Cog):
                     usage='user1[, user2[, ...]] [reason]')
     @commands.check_any(commands.is_owner(), commands.has_permissions(administrator=True))
     async def castigo(self, ctx : commands.Context):
-        castigo = [x for x in ctx.guild.roles if x.name.lower() == "castigo"][0]
+        castigo = discord.utils.get(ctx.guild.roles, name="castigo")
+        if not castigo:
+            castigo = discord.utils.get(ctx.guild.roles, name="sudoers")
         for member in ctx.message.mentions:
             await member.add_roles(castigo, reason=(' '.join([x for x in ctx.message.content.split()[2:] if '<@!' not in x])))
 
@@ -21,7 +23,9 @@ class Manage(commands.Cog):
                     usage='user1[, user2[, ...]] [reason]')
     @commands.check_any(commands.is_owner(), commands.has_permissions(administrator=True))
     async def perdoar(self, ctx : commands.Context):
-        castigo = [x for x in ctx.guild.roles if x.name.lower() == "castigo"][0]
+        castigo = discord.utils.get(ctx.guild.roles, name="castigo")
+        if not castigo:
+            castigo = discord.utils.get(ctx.guild.roles, name="sudoers")
         for member in ctx.message.mentions:
             await member.remove_roles(castigo, reason=(' '.join([x for x in ctx.message.content.split()[2:] if '<@!' not in x])))
 

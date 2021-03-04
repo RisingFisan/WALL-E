@@ -206,6 +206,14 @@ class Utils(commands.Cog):
             await message.add_reaction(emojis[i])
 
 
+    @commands.command(name='pi',    
+                          brief='Height Calculator',    
+                          help="Use this command to learn your height in the new S.I. unit \"Pipinhas\"",
+                          hidden=True)    
+    async def pipinhas(self, ctx, height : float):    
+        c = height/1.53
+        await ctx.send("You are {:.2f} Pipinhas tall.".format(c))
+
 async def get_json(url):
     try:
         async with ClientSession() as session:

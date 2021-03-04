@@ -210,9 +210,18 @@ class Utils(commands.Cog):
                           brief='Height Calculator',    
                           help="Use this command to learn your height in the new S.I. unit \"Pipinhas\"",
                           hidden=True)    
-    async def pipinhas(self, ctx, height : float):    
-        c = height/1.53
-        await ctx.send("You are {:.2f} Pipinhas tall.".format(c))
+    async def pipinhas(self, ctx, *args):
+        m = re.fullmatch(r"(\d+(?:\.\d+)?)m?",''.join(args).strip())
+        if m:
+            c = float(m.group(1)) / 1.53
+            await ctx.send("You are {:.2f} Pipinhas tall.".format(c))
+        else:
+            m = re.match(r"(\d+)cm", ''.join(args).strip())
+            if m:
+                c = float(m.group(1)) / 153.0
+                await ctx.send("You are {:.2f} Pipinhas tall.".format(c))
+            else:
+                await ctx.send("Error - invalid height format")
 
 async def get_json(url):
     try:

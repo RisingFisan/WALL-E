@@ -55,7 +55,7 @@ NOTE: the color attribute can be a name, like 'blue' or 'red', or an RGB hex cod
             roles[user_id] = {'name': argv[0], 'color': role.color.value}
 
             with open("db/roles.json","w") as f:
-                json.dump(roles, f)
+                json.dump(roles, f, indent=4)
 
             await ctx.author.add_roles(role)
             await ctx.send(content=f"Role {argv[0]} created with success!")
@@ -122,7 +122,7 @@ NOTE: the color attribute can be a name, like 'blue' or 'red', or an RGB hex cod
                 return
         
             with open("db/roles.json","w") as f:
-                json.dump(roles, f)
+                json.dump(roles, f, indent=4)
 
             await ctx.send(content=f"Role {role.name} edited with success!")
 

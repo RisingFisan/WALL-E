@@ -9,7 +9,7 @@ class Manage(commands.Cog):
                     brief='Punish someone for their sins. [ADMIN ONLY]',
                     help='This command gives the role "castigo" to the specified user(s).',
                     usage='user1[, user2[, ...]] [reason]')
-    @commands.check_any(commands.is_owner(), commands.has_permissions(administrator=True))
+    @commands.check_any(commands.is_owner(), commands.has_permissions(administrator=True), commands.has_role('permissão para castigar'))
     async def castigo(self, ctx : commands.Context):
         castigo = discord.utils.get(ctx.guild.roles, name="castigo")
         if not castigo:
@@ -21,7 +21,7 @@ class Manage(commands.Cog):
                     brief='Forgive someone for their sins. [ADMIN ONLY]',
                     help='This command removes the role "castigo" from the specified user(s).',
                     usage='user1[, user2[, ...]] [reason]')
-    @commands.check_any(commands.is_owner(), commands.has_permissions(administrator=True))
+    @commands.check_any(commands.is_owner(), commands.has_permissions(administrator=True), commands.has_role("permissão para castigar"))
     async def perdoar(self, ctx : commands.Context):
         castigo = discord.utils.get(ctx.guild.roles, name="castigo")
         if not castigo:
@@ -30,6 +30,7 @@ class Manage(commands.Cog):
             await member.remove_roles(castigo, reason=(' '.join([x for x in ctx.message.content.split()[2:] if '<@!' not in x])))
 
     @commands.command(name='add_role',
+                    hidden=True,
                     brief='Gives a specific role to one or more users. [ADMIN ONLY]',
                     help='This command gives the role "role_name" to the specified user(s).',
                     usage='role_name user1[, user2[, ...]]',
@@ -45,6 +46,7 @@ class Manage(commands.Cog):
             await ctx.send(content=f"Error - role {rolename} not found")
 
     @commands.command(name='remove_role',
+                    hidden=True,
                     brief='Removes a specific role from one or more users. [ADMIN ONLY]',
                     help='This command removes the role "role_name" from the specified user(s).',
                     usage='role_name user1[, user2[, ...]]',
@@ -60,6 +62,7 @@ class Manage(commands.Cog):
             await ctx.send(content=f"Error - role {rolename} not found")
 
     @commands.command(name='mute_everyone',aliases=['me'],
+                    hidden=True,
                     brief='Makes everyone STFU! [ADMIN ONLY]',
                     help='This command can be used to server mute every user in the voice channel of the user who types the command.',
                     usage='')
@@ -74,6 +77,7 @@ class Manage(commands.Cog):
 
 
     @commands.command(name='unmute_everyone',aliases=['ue'],
+                    hidden=True,
                     brief='Everyone can talk now! [ADMIN ONLY]',
                     help='This command can be used to server unmute every user in the voice channel of the user who types the command.',
                     usage='')

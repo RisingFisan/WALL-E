@@ -84,6 +84,9 @@ class Interact(commands.Cog):
                     help='Use this command to have sex with someone else, but only after they consent, of course 😌!',
                     usage='[user1|role1[, user2|role2[, ...]]]')
     async def fuck(self, ctx, *s):
+        if ctx.author.id == 142944000138018816 and 630134121469050897 in [x.id for x in ctx.message.mentions]:
+            await ctx.send(file=discord.File(self.bot.imagesMap['no']))
+            return
         actions = {
             'self': "Ok, masturbator {}... 😳",
             'bot': "I'm flattered, {}, but I'm already in a relationship!",
@@ -300,7 +303,7 @@ class Interact(commands.Cog):
         msg = await ctx.fetch_message(message_id)
         await msg.reply(content=s)
 
-    @commands.command(name="neopronouns",aliases=['np','neop'])
+    @commands.command(name="neopronouns",hidden=True,aliases=['np','neop'])
     async def neopronouns(self, ctx):
         with open("db/words_dictionary.json") as f:
             words = json.load(f)
@@ -312,6 +315,12 @@ class Interact(commands.Cog):
                     help='Use this command to UwUify a given message or text.',
                     usage='[messageID1|string1[, messageID2|string2[, ...]]] (use with no arguments to UwUify the previously sent message)')
     async def uwu(self, ctx : commands.Context, *args):
+        msg : discord.MessageReference = ctx.message.reference
+        if msg:
+            message = msg.resolved
+            uwuified = uwuify(message.content)
+            await send_without_mentions(ctx, uwuified)
+            return
         if not args:
             messages = await ctx.channel.history(limit=3).flatten()
             uwuified = uwuify(messages[1].content)
@@ -446,7 +455,6 @@ class Interact(commands.Cog):
     async def mike(self, ctx):
         await ctx.message.delete()
         await ctx.send(content="thx ❤ - mikinho")
-
 
 async def send_without_mentions(ctx : commands.Context, message : str):
     if "<@" in message:

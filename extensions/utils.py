@@ -20,7 +20,8 @@ class Utils(commands.Cog):
                     brief='Display this server\'s info.',
                     help='With this command you can see various information about this server/guild.',
                     usage='')
-    async def serverinfo(self, ctx : commands.Context , user : str = ""):
+    async def serverinfo(self, ctx : commands.Context):
+        bot_m = await ctx.guild.fetch_member(self.bot.user.id)
         guild : discord.Guild = ctx.guild
         n_bots = len([member for member in guild.members if member.bot])
         creation_date : datetime = guild.created_at
@@ -29,7 +30,7 @@ class Utils(commands.Cog):
         embed.add_field(name="Members",value=guild.member_count)\
             .add_field(name="Humans",value=f"{guild.member_count - n_bots}")\
             .add_field(name="Bots",value=f"{n_bots}")\
-            .add_field(name="Text channels", value=f"{len(guild.text_channels)}")\
+            .add_field(name="Text channels", value=f"{len([x for x in guild.text_channels if x.permissions_for(bot_m).read_messages])}")\
             .add_field(name="Voice channels", value=f"{len(guild.voice_channels)}")\
             .add_field(name="Emojis",value=f"{len([x for x in guild.emojis if not x.animated])}/{guild.emoji_limit}",inline=False)\
             .add_field(name="Region",value=f"{str(guild.region).capitalize()}")\

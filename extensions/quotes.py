@@ -106,6 +106,8 @@ class Quotes(commands.Cog):
             await ctx.send(content=f"{random_quote['content']} - {random_quote['nick']}")
         elif argc == "number":
             await ctx.send(content=f"There are {len(quotes[guild_id])} quotes on this server.")
+        elif argc == "mine":
+            await ctx.send(content=f"You have {len([q for q in quotes[guild_id].values() if q['user'] == ctx.message.author.id])} quotes on this server.")
         elif argc == "search":
             if len(quotes[guild_id]) == 0:
                 await ctx.send(content="There are no quotes to search for.")

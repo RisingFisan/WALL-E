@@ -8,22 +8,38 @@ import string
 import time
 from unidecode import unidecode
 import re
-from itertools import takewhile
+import json
+from random import choice
 
 intents = discord.Intents.all()
 # intents.members=True
-bot = commands.Bot(command_prefix='?', case_insensitive=True, intents=intents)
+bot = commands.Bot(command_prefix=('?','*'), case_insensitive=True, intents=intents)
+
+based_copypastas = [
+    "Based? Based on what? In your dick? Please shut the fuck up and use words properly you fuckin troglodyte, do you think God gave us a freedom of speech just to spew random words that have no meaning that doesn't even correlate to the topic of the conversation? Like please you always complain about why no one talks to you or no one expresses their opinions on you because you're always spewing random shit like poggers based cringe and when you try to explain what it is and you just say that it's funny like what? What the fuck is funny about that do you think you'll just become a stand-up comedian that will get a standing ovation just because you said \"cum\" in the stage? HELL NO YOU FUCKIN IDIOT, so please shut the fuck up and use words properly you dumb bitch",
+    "Based on fucking what? BASED ON FYCKING WHAT? You fucking cunt, you notherfucker. All I read is \"based based based cringe cringe based\", can't you fucking come up with anything else? It feels as if I'm talking to people with fuckijng dementia or something and they keep repeating the same fucking words on loop. BASEd ON FUCKING WHAT??? THE BIBLE? THE OXFORD DICITONARY? MY HAIRY ASSHOLE? OH my God just shut the fuck up it's like you can't form a coherent sentence without using one of these saturated, retarded words that lost all meaning overtime. BASED BASED BASED CRINGE CRINGE WOKE REDPILL CRIMGE WOKE GO FUCK YOURSELF YOU LITTLE BITCH YOU CUNT YOU FUCking asshole you bitch you cunt little shit",
+    "\"Based\"? Are you fucking kidding me? Your only response to this is \"Based\"? Are you so mentally handicapped that the only word you can comprehend is \"Based\" - or are you just some fucking asshole who thinks that with such a short response, they can make a statement about how meaningless what was written was? Well, I'll have you know that this was NOT meaningless, in fact, it was proof-read by several professors of literature. Don't believe me? I doubt you would, and your response to this will probably be \"Based\" once again. Do I give a fuck? No, does it look like I give even the slightest fuck about five fucking letters? I bet you took the time to type those five letters too, I bet you sat there and chuckled to yourself for 20 hearty seconds before pressing \"send\". You're so fucking pathetic. I'm honestly considering directing you to a psychiatrist, but I'm simply far too nice to do something like that. You, however, will go out of your way to make a fool out of someone by responding to a well-thought-out, intelligent, or humorous statement that probably took longer to write than you can last in bed with a chimpanzee. What do I have to say to you? Absolutely nothing. I couldn't be bothered to respond to such a worthless attempt at a response. Do you want \"Based\" on your gravestone?"
+]
 
 def main():
+    bot.owner_id = 423956774593363979
     bot.IMAGES_PATH = "./images/"
     bot.GIFS_PATH = "./gifs/"
 
     bot.imagesMap = dict()
     bot.gifsMap = dict()
+    bot.imagesMap["common"] = dict()
 
     for f in os.listdir(bot.IMAGES_PATH):
-        filename, _ = os.path.splitext(f)
-        bot.imagesMap[filename.lower()] = (bot.IMAGES_PATH + f)
+        if f.isdigit():
+            subpath = bot.IMAGES_PATH + f + "/"
+            bot.imagesMap[f] = dict()
+            for ff in os.listdir(subpath):
+                filename, _ = os.path.splitext(ff)
+                bot.imagesMap[f][filename.lower()] = (subpath + ff)
+        else:
+            filename, _ = os.path.splitext(f)
+            bot.imagesMap["common"][filename.lower()] = (bot.IMAGES_PATH + f)
 
     for f in os.listdir(bot.GIFS_PATH):
         filename, _ = os.path.splitext(f)
@@ -39,13 +55,9 @@ def main():
 
     bot.cooldowned_users = dict()
 
-    bot.bad_words=dict()
-
     try:
-        with open("./bad_words.txt") as f:
-            for line in f.readlines():
-                key, value = line.strip().split('->',1)
-                bot.bad_words[key] = value
+        with open("db/bad_words.json") as f:
+            bot.bad_words = json.load(f)
     except FileNotFoundError:
         print("Bad words file not found, feature won't be able to be used.")
 
@@ -57,7 +69,7 @@ def main():
 async def on_ready():
     print(f'{discord.version_info}')
     print(f'{bot.user} has connected to Discord!')
-    await bot.change_presence(activity=discord.Game(name='beep bop, my prefix is ?'))#, emoji=emoji))
+    await bot.change_presence(activity=discord.Game(name='My prefixes are ?/*, beep bop'))#, emoji=emoji))
 
 @bot.event
 async def on_message(message : discord.Message):
@@ -67,7 +79,8 @@ async def on_message(message : discord.Message):
     decoded = unidecode(message.content.lower())
 
     for bad_word in bot.bad_words:
-        if (bad_word in unidecode(''.join(x for x in message.content.lower() if x not in string.whitespace + ":.,-|\\/*_()")) or bad_word in decoded):
+        if bad_word == "allowlist": continue
+        if message.author.id not in bot.bad_words["allowlist"].get(bot.bad_words[bad_word],list()) and (bad_word in unidecode(''.join(x for x in message.content.lower() if x not in string.whitespace + ":.,-|\\/*_()\u200a")) or bad_word in decoded):
             await message.channel.send(content=f'{message.author.mention} {discord.utils.find(lambda e: e.name.lower() == "bruh", bot.emojis) or "bruh"} sit yo\' {bot.bad_words[bad_word]} ass down')
             await message.delete()
             return
@@ -79,8 +92,11 @@ async def on_message(message : discord.Message):
             return
     if message.content.startswith(bot.command_prefix):
         content = message.content.lower()[1:]
-        if content in bot.imagesMap:
-            await message.channel.send(file=discord.File(bot.imagesMap[content]))
+        if content in bot.imagesMap.get(str(message.guild.id), set()):
+            await message.channel.send(file=discord.File(bot.imagesMap[str(message.guild.id)][content]))
+            return
+        elif content in bot.imagesMap["common"]:
+            await message.channel.send(file=discord.File(bot.imagesMap["common"][content]))
             return
         elif content in bot.gifsMap:
             await message.channel.send(file=discord.File(bot.gifsMap[content]))
@@ -88,11 +104,6 @@ async def on_message(message : discord.Message):
 
     if re.search(bot.covidre,decoded) is not None:
         await message.reply(content=f"Não é ***O*** COVID-19, é ***A*** COVID-19, stop misgendering global pandemics! {[emoji for emoji in bot.emojis if emoji.name == 'angry'][0]}", mention_author=False)
-
-    #if decoded.startswith("i'm"):
-    #    await message.reply(content=f"Hi {''.join(takewhile(lambda x : x and x not in '.,;', decoded[4:]))}, I'm WALL-E!", mention_author=False)
-    #elif decoded.startswith("i am"):
-    #    await message.reply(content=f"Hi {''.join(takewhile(lambda x : x and x not in '.,;', decoded[5:]))}, I'm WALL-E!", mention_author=False)
 
     #index_es = message.content.lower().find("el covid")
     #if index_es != -1:
@@ -104,8 +115,8 @@ async def on_message(message : discord.Message):
     #    if len(message.content) == index_fr + 8 or message.content[index_fr+8] in "-1 \n":
     #        await message.reply(content=f"Ce n'est pas ***LE*** COVID-19, c'est ***LA*** COVID-19, arrête de traiter pandémies mondiales par le mauvais genre! {[emoji for emoji in bot.emojis if emoji.name == 'angry'][0]}", mention_author=False)
 
-    if ("based " == message.content[:6].lower() or "based" in message.content[-8:].lower()) and message.content[6:8].lower() not in ("on","in"):
-        await message.reply(content="Based? Based on what? In your dick? Please shut the fuck up and use words properly you fuckin troglodyte, do you think God gave us a freedom of speech just to spew random words that have no meaning that doesn't even correlate to the topic of the conversation? Like please you always complain about why no one talks to you or no one expresses their opinions on you because you're always spewing random shit like poggers based cringe and when you try to explain what it is and you just say that it's funny like what? What the fuck is funny about that do you think you'll just become a stand-up comedian that will get a standing ovation just because you said \"cum\" in the stage? HELL NO YOU FUCKIN IDIOT, so please shut the fuck up and use words properly you dumb bitch", mention_author=False)
+    if message.content.lower() == "based" or ("based " == message.content[:6].lower() and message.content[6:8].lower() not in ("on","in")) or " based" in message.content[-8:].lower():
+        await message.reply(content=choice(based_copypastas), mention_author=False)
 
     await bot.process_commands(message)
 
@@ -117,6 +128,8 @@ async def on_message_edit(before, after):
 async def on_command_error(ctx, error):
     if isinstance(error, commands.errors.CheckFailure):
         await ctx.send(content="Nice try bruh")
+    elif isinstance(error, commands.errors.MissingRequiredArgument):
+        await ctx.send(content="Error - missing one or more arguments.")
     else:
         raise error
         # await bot.get_channel(id=787067233016217620).send(content=error)
@@ -167,33 +180,24 @@ async def testleave(ctx):
 @commands.is_owner()
 async def addbadword(ctx,word,category):
     category = category.lower()
-    bot.bad_words.append(word)
+    bot.bad_words[word] = category
     with open("bad_words.txt",'a') as f:
         f.write(word + '->' + category + '\n')
         await ctx.send(content=f"Word \"{word}\" added to the list of {category} bad words.")
 
 @bot.command(name='popbadword',hidden=True,aliases=['pbw'])
 @commands.is_owner()
-async def popbadword(ctx):
+async def popbadword(ctx, word):
+    bot.bad_words.pop(word)
     with open("bad_words.txt",'w') as f:
-        for word in bot.bad_words[:-1]:
+        for word in bot.bad_words:
             f.write(word + '->' + bot.bad_words[word] + '\n')
-    await ctx.send(content=f"Word \"{bot.bad_words.popitem()}\" removed from the list of bad words.")
+    await ctx.send(content=f"Word \"{word}\" removed from the list of bad words.")
 
 @bot.command(name='kil',hidden=True)
 @commands.is_owner()
 async def kil(ctx):
-    await bot.logout()
-
-@bot.command(name='disable_quotes',hidden=True)
-@commands.is_owner()
-async def disable_quotes(ctx):
-    await bot.unload_extension("extensions.quotes")
-
-@bot.command(name='enable_quotes',hidden=True)
-@commands.is_owner()
-async def enable_quotes(ctx):
-    await bot.load_extension("extensions.quotes")
+    await bot.close()
 
 @bot.command(name='brrr',hidden=True)
 @commands.is_owner()

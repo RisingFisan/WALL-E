@@ -1,4 +1,4 @@
 images/*
 gifs/*
-db/*.pck
+db/cache
 db/*.json

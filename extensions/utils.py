@@ -26,7 +26,7 @@ class Utils(commands.Cog):
         n_bots = len([member for member in guild.members if member.bot])
         creation_date : datetime = guild.created_at
         embed = discord.Embed(title=f'{guild.name}')
-        embed.set_thumbnail(url=guild.icon_url)
+        embed.set_thumbnail(url=guild.icon.url)
         embed.add_field(name="Members",value=guild.member_count)\
             .add_field(name="Humans",value=f"{guild.member_count - n_bots}")\
             .add_field(name="Bots",value=f"{n_bots}")\
@@ -57,7 +57,7 @@ class Utils(commands.Cog):
             await ctx.send(content='Error - invalid arguments')
         if member:
             embed = discord.Embed(title=f'{member.display_name}\'s avatar',color=member.color)
-            embed.set_image(url=member.avatar_url)
+            embed.set_image(url=member.avatar.url)
             await ctx.send(embed=embed)
 
     @commands.command(name='time',brief='What time is it?')
@@ -79,11 +79,11 @@ class Utils(commands.Cog):
         i = 0
         msg = await ctx.send(content="Loading...")
         while True:
-            embed = discord.Embed(title=definitions[i]["word"],description=f"{definitions[i]['definition']}",\
+            embed = discord.Embed(title=definitions[i]["word"],description=f"{definitions[i]['definition'][:1000] + '...' if len(definitions[i]['definition']) > 1000 else definitions[i]['definition']}",\
                 url=definitions[i]['permalink'],timestamp=datetime.datetime.strptime(definitions[i]["written_on"].split('.')[0],"%Y-%m-%dT%H:%M:%S"))
             embed.set_author(name=definitions[i]["author"])
             example = definitions[i]['example'] if definitions[i]['example'] else 'No example given.'
-            embed.add_field(name="Example:",value=example)\
+            embed.add_field(name="Example:",value=(example[:1000] + "..." if len(example) > 1000 else example))\
                 .add_field(name="👍",value=definitions[i]["thumbs_up"])\
                 .add_field(name="👎",value=definitions[i]["thumbs_down"])
             embed.set_footer(text=f"Page {i+1} of {n}.")

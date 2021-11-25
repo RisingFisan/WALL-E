@@ -130,6 +130,12 @@ NOTE: the color attribute can be a name, like 'blue' or 'red', or an RGB hex cod
 
 async def add_role_to_guild(guild : discord.Guild, name, color : discord.Color):
     role = await guild.create_role(name=name, color=color)
+    for i in range(len(guild.roles)-1,0,-1):
+        try:
+            await role.edit(position=i)
+            break
+        except:
+            continue
     return role
 
 def setup(bot):

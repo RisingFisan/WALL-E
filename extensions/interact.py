@@ -66,6 +66,33 @@ class Interact(commands.Cog):
         }
         await interaction(ctx, self.bot, actions)
 
+    @commands.command(name='kiss',hidden=True,
+                    brief='Kiss someone!',
+                    help='Use this command to give someone a juicy kiss! 😘',
+                    usage='[user1|role1[, user2|role2[, ...]]]')
+    async def kiss(self, ctx):
+        actions = {
+            'self': "You can't kiss yourself, {}, so I'll kiss you instead! (*¯ ³¯*)♡",
+            'bot': "Uh, thanks {} 😳",
+            'default': "{1} just received a juicy kiss from {0}! (*¯ ³¯*)♡",
+            'none': "\*{} sends kisses into the air\*"
+        }
+        await interaction(ctx, self.bot, actions)
+
+    @commands.command(name='lick',hidden=True,
+                    brief='Lick someone!',
+                    help='Use this command to lick someone, but make sure you and they are vaccinated first! 👅💦',
+                    usage='[user1|role1[, user2|role2[, ...]]]')
+    async def lick(self, ctx):
+        actions = {
+            'self': "{} just licked themself, like a cat... 🐈",
+            'bot': "I hope you have your tetanus shot in order {} 😳",
+            'default': "{1} got licked all over by {0}! (っˆڡˆς)",
+            'none': "https://tenor.com/bHk1o.gif"
+        }
+        await interaction(ctx, self.bot, actions)
+
+
     @commands.command(name='hide',hidden=True,
                     brief='Hide from someone!',
                     help='Use this command to hide from someone else!',
@@ -79,12 +106,14 @@ class Interact(commands.Cog):
         }
         await interaction(ctx, self.bot, actions)
 
+# 630134121469050897 Bea in [x.id for x in ctx.message.mentions]:
+
     @commands.command(name='fuck',hidden=True,
                     brief='Fuck someone! (make sure you get their consent first)',
                     help='Use this command to have sex with someone else, but only after they consent, of course 😌!',
                     usage='[user1|role1[, user2|role2[, ...]]]')
     async def fuck(self, ctx, *s):
-        if ctx.author.id == 142944000138018816 and 630134121469050897 in [x.id for x in ctx.message.mentions]:
+        if ctx.author.id == 142944000138018816 and ctx.guild.id == 904530074236256256: 
             await ctx.send(file=discord.File(self.bot.imagesMap['no']))
             return
         actions = {
@@ -176,9 +205,10 @@ class Interact(commands.Cog):
     @commands.command(name='interactions', brief='Interact with someone else.')
     async def interactions(self, ctx):
         embed = discord.Embed(title="Interactions", description="Here's all the interactions you can perform:")
-        embed.add_field(name="Friendly", value="love\nhug")
+        embed.add_field(name="Friendly", value="love\nhug\nkiss")
         embed.add_field(name="Sexual", value="fuck\nspank")
         embed.add_field(name="Neutral", value="hide\ndab")
+        embed.add_field(name="Weird", value="lick")
         embed.add_field(name="Negative", value="cry")
         embed.add_field(name="Aggressive", value="cough\nslap\nsnipe")
         await ctx.send(embed=embed)
@@ -284,7 +314,10 @@ class Interact(commands.Cog):
                     usage='[string]')
     async def spoiler(self, ctx, *message):
         await ctx.message.delete()
-        await ctx.send(content=''.join(f"||{x}||" for x in ' '.join(message)))
+        if message[0].lower() == "copy":
+            await ctx.send(content="`{}`".format(''.join(f"||{x}||" for x in ' '.join(message[1:]))))
+        else:
+            await ctx.send(content=''.join(f"||{x}||" for x in ' '.join(message)))
 
     @commands.command(name='say')
     async def say(self, ctx, *content):
@@ -297,9 +330,14 @@ class Interact(commands.Cog):
             await ctx.send(content=s)
 
     @commands.command(name='reply')
-    async def reply(self, ctx, message_id, *content):
+    async def reply(self, ctx, *content):
+        reply_text = list(content)
         await ctx.message.delete()
-        s = ' '.join(content).replace("\\n","\n")
+        if ref := ctx.message.reference:
+            message_id = ref.message_id
+        else:
+            message_id = reply_text.pop(0)
+        s = ' '.join(reply_text).replace("\\n","\n")
         msg = await ctx.fetch_message(message_id)
         await msg.reply(content=s)
 
@@ -384,8 +422,11 @@ class Interact(commands.Cog):
             emoji_obj = self.bot.get_emoji(int(emoji_id))
             if emoji_obj:
                 try:
-                    emj = await emoji_obj.url.read()
-                    overlay_img = cv2.imdecode(np.fromstring(emj, np.uint8), cv2.IMREAD_UNCHANGED)
+                    #emj = await emoji_obj.url.read()
+                    req = Request(emoji_obj.url, None, headers)
+                    arr = np.asarray(bytearray(urlopen(req).read()), dtype='uint8')
+                    #overlay_img = cv2.imdecode(np.fromstring(emj, np.uint8), cv2.IMREAD_UNCHANGED)
+                    overlay_img = cv2.imdecode(arr, cv2.IMREAD_UNCHANGED)
                 except Exception as e:
                     await ctx.send(content=e)
                     return
@@ -446,15 +487,30 @@ class Interact(commands.Cog):
     async def magicball(self, ctx):
         await ctx.message.reply(content=random.choice(self.answers),mention_author=False)
 
-    
-    @commands.command(name='DMs',hidden=True)
-    async def dms(self, ctx):
-        await ctx.send(content="idk man im not that creative with this lack of sleep joy")
-    
-    @commands.command(name='mike',hidden=True)
-    async def mike(self, ctx):
-        await ctx.message.delete()
-        await ctx.send(content="thx ❤ - mikinho")
+    @commands.command(name='judge',
+                    brief='Judge someone\'s taste in music.',
+                    help='Wanna be an asshole? This is the perfect command for you. Just mention someone who is listening to something on Spotify to judge them for it.',
+                    usage='@user')
+    async def judge(self, ctx : commands.Context, member : discord.Member = None):
+        judge_self = False
+        if not member:
+            member = ctx.author
+            judge_self = True
+        try:
+            spotify = [ x for x in member.activities if type(x) == discord.Spotify][0]
+        except IndexError:
+            if judge_self:
+                await ctx.send("You didn't mention anyone for me to judge.")
+            else:
+                await ctx.send("That user is not listening to anything on Spotify right now. Try again later.")
+            return
+        song_name = spotify.title
+        song_artists = spotify.artists
+        if judge_self:
+            await ctx.send("You didn't mention anyone for me to judge, so I'll judge you. 👀")
+        await ctx.send(f"Wow {member.mention}, you're *really* listening to **{song_name}** by **{' & '.join(song_artists)}**?! Like, unironically?! 😂")
+        
+        
 
 async def send_without_mentions(ctx : commands.Context, message : str):
     if "<@" in message:
